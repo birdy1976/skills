@@ -1,0 +1,10 @@
+{
+  "skills": [
+    {
+      "name": "python-cli-prompt-generator",
+      "description": "Generates an agent-optimized PROMPT.md for Python CLI tools from short descriptions.",
+      "path": "skills/python-cli-prompt-generator/PROMPT.md",
+      "type": "markdown"
+    }
+  ]
+}
