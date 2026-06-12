@@ -1,3 +1,8 @@
+---
+name: python-cli-prompt-generator
+description: "Generiert einen agenten-optimierten Arbeitsauftrag (PROMPT.md) aus einer kurzen Beschreibung."
+---
+
 # Skill: Python-CLI-Prompt-Generator
 
 ## Zweck
