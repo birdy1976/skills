@@ -6,12 +6,31 @@ description: "Generiert einen agenten-optimierten Arbeitsauftrag (PROMPT.md) aus
 # Skill: Python-CLI-Prompt-Generator
 
 ## Zweck
-Aus einer kurzen Tool-Beschreibung (3–8 Sätze) generiert dieser Skill einen vollständigen, agenten-optimierten Arbeitsauftrag (`PROMPT.md`) – nach dem gleichen Schema wie das optimierte Quiz-Beispiel: Projektstruktur, Python-Expert-Regeln, pytest-Tests, README.md, AGENTS.md, sowie Ausführungs- und Validierungsregeln, die der Coding-Agent selbständig abarbeitet.
+Aus einer kurzen Tool-Beschreibung (3–8 Sätze) generiert dieser Skill einen vollständigen, agenten-optimierten Arbeitsauftrag (`PROMPT.md`) – nach dem gleichen Schema wie das optimierte Quiz-Beispiel: Projektstruktur, Python-Expert-Regeln, pytest-Tests (optional), README.md, sowie Ausführungs- und Validierungsregeln, die der Coding-Agent selbständig abarbeitet.
 
 ## Verwendung
-1. Diesen gesamten Datei-Inhalt als Vorab-/System-Prompt an deine KI geben.
-2. Direkt danach die Tool-Beschreibung anhängen.
-3. Die KI erstellt die Datei `PROMPT.md` direkt im Workspace und gibt den Inhalt zusätzlich aus.
+Dieser Skill generiert einen PROMPT.md für einen Coding-Agenten. Er kann mit Optionen für die pytest-Generierung aufgerufen werden. Das generierte Python-Tool soll jederzeit sauber durch `Ctrl+c` beendet werden können.
+
+1.  **Standard-Aufruf (minimale Pytests):**
+    `/python-cli-prompt-generator`
+    *Dieser Aufruf erzeugt einen PROMPT.md mit minimalen Pytests (Standardverhalten).*
+
+2.  **Ohne Pytests:**
+    `/python-cli-prompt-generator pytest-none`
+    *Dieser Aufruf erzeugt einen PROMPT.md ohne die Sektion für Pytests.*
+
+3.  **Minimale Pytests:**
+    `/python-cli-prompt-generator pytest-mini`
+    *Dieser Aufruf erzeugt einen PROMPT.md mit minimalen Pytests.*
+
+4.  **Umfassende Pytests (aktuelle Implementierung):**
+    `/python-cli-prompt-generator pytest-full`
+    *Dieser Aufruf erzeugt einen PROMPT.md mit umfassenden Pytests (entspricht dem vorherigen Standard).*
+
+**Generierungsprozess für die KI:**
+1.  Diesen gesamten Datei-Inhalt als Vorab-/System-Prompt an deine KI geben.
+2.  Direkt danach die Tool-Beschreibung anhängen.
+3.  Die KI erstellt die Datei `PROMPT.md` direkt im Workspace und gibt den Inhalt zusätzlich aus.
 
 ---
 
@@ -33,17 +52,21 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 6. Entwerfe Test-Suiten (eine Klasse pro Funktion/Bereich). Für nicht-triviale Logik (z. B. mehrstufige Zustandsänderungen, stdin-Mocking) gib **exakte Inputs und erwartete Werte** an, nicht nur eine vage Beschreibung.
 7. Summiere die Testanzahlen aller Suiten zu einer Gesamtzahl N. Diese Zahl N muss exakt an zwei Stellen verwendet werden: in "Qualitätsanforderung" und in "Validierung am Ende" – beide müssen übereinstimmen.
 8. Fülle das Template unten 1:1 aus. Ersetze nur `{...}`-Platzhalter, ändere die Abschnittsstruktur sonst nicht.
+9. **Pytest-Generierung (basierend auf Aufruf-Option):**
+    *   Wenn `/python-cli-prompt-generator pytest-none` verwendet wird, **entferne** die gesamte Sektion `## test_{Hauptdatei} – Tests` und `## Validierung am Ende` (Punkt 2: `pytest -v`) aus dem generierten `PROMPT.md`. Setze N auf 0.
+    *   Wenn `/python-cli-prompt-generator pytest-mini` (oder Standard ohne Option) verwendet wird, generiere die Sektion `## test_{Hauptdatei} – Tests` mit minimalen, aber aussagekräftigen Pytests.
+    *   Wenn `/python-cli-prompt-generator pytest-full` verwendet wird, generiere die Sektion `## test_{Hauptdatei} – Tests` mit umfassenden Pytests (aktuelle Implementation).
 
 ## Checkliste vor Ausgabe (selbst prüfen – erst danach ausgeben)
-- [ ] Summe der Tests pro Suite == genannte Gesamtzahl N (an beiden Stellen identisch)?
+- [ ] Summe der Tests pro Suite == genannte Gesamtzahl N (an beiden Stellen identisch)? (Oder N=0 bei `pytest-none`)
 - [ ] Jede in `test_...`-Namen implizit verwendete Funktion ist oben mit Signatur + Verhalten spezifiziert?
 - [ ] Alle Funktionssignaturen vollständig typisiert, inkl. Rückgabetyp?
 - [ ] Alle Markdown-Code-Fences sind paarweise geöffnet und geschlossen (keine Waisen-Fences)?
 - [ ] Kein Abschnitt mit Rationale/"Was hätte schiefgehen können" o. Ä. (das gehört nicht in den Agenten-Auftrag)?
 - [ ] Sortier-, Format- und Rundungsregeln sind konkret formuliert (z. B. "auf ganze Zahl gerundet", "aufsteigend nach Label"), nicht "sinnvoll"/"passend"?
 - [ ] "Validierung am Ende" ist als Liste von Schritten formuliert, die der AGENT selbst ausführt und deren Ergebnis er berichtet (nicht der Nutzer)?
-- [ ] AGENTS.md-Vorgabe verweist nur auf die Regeln aus "Python-Expert-Regeln" – kein open "Regelsammlung"-Auftrag?
 - [ ] "Ausführungsregeln"-Block ist unverändert aus dem Template übernommen?
+- [ ] `.gitignore` und `AGENTS.md` werden nicht mehr im generierten `PROMPT.md` aufgeführt oder angefordert.
 
 ---
 
@@ -64,12 +87,10 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 ## Projektstruktur
 ```
 ./
-├── .gitignore
 ├── README.md
 ├── PROMPT.md
 ├── {Hauptdatei}
 ├── test_{Hauptdatei}
-├── AGENTS.md
 {weitere Dateien, z. B. Beispiel-Inputdatei}
 ```
 
@@ -109,51 +130,8 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 
 ### Test-Setup
 - `sys.path.insert(0, str(PROJECT_ROOT))`
-- `monkeypatch.setattr('sys.stdin', io.StringIO(...))` für I/O-Mock
+- `monkeypatch.setattr(\'sys.stdin\', io.StringIO(...))` für I/O-Mock
 - `tmp_path`-Fixtures für Dateitests
-
-## .gitignore
-Erstelle eine `.gitignore` mit diesen Einträgen:
-```
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-*.egg-info/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg
-venv/
-.venv/
-env/
-.env/
-pytest_cache/
-.pytest_cache/
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-.mypy_cache/
-node_modules/
-```
-Falls bereits eine `.gitignore` existiert: nur fehlende Einträge ergänzen, nicht neu schreiben.
-
-## AGENTS.md
-Erstelle eine kurze `AGENTS.md` (max. ca. 30 Zeilen) mit genau zwei Abschnitten:
-1. Priorisierungsreihenfolge: Korrektheit → Typsicherheit → Performance → Stil
-2. Die Regeln wörtlich aus "Python-Expert-Regeln" oben übernehmen
-
-Keine zusätzlichen, frei erfundenen Regeln hinzufügen.
 
 ## README.md
 Erstelle eine deutsche `README.md` mit:
