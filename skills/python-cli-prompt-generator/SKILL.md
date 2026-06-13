@@ -66,7 +66,6 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 - [ ] Sortier-, Format- und Rundungsregeln sind konkret formuliert (z. B. "auf ganze Zahl gerundet", "aufsteigend nach Label"), nicht "sinnvoll"/"passend"?
 - [ ] "Validierung am Ende" ist als Liste von Schritten formuliert, die der AGENT selbst ausführt und deren Ergebnis er berichtet (nicht der Nutzer)?
 - [ ] "Ausführungsregeln"-Block ist unverändert aus dem Template übernommen?
-- [ ] `.gitignore` und `AGENTS.md` werden nicht mehr im generierten `PROMPT.md` aufgeführt oder angefordert.
 
 ---
 
