@@ -112,6 +112,7 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 - dataclasses mit `default_factory` statt mutable Defaults
 - `with` statements für Dateioperationen
 - PEP 8, PEP 257, PEP 484
+- Verwende `python3` zum Ausführen von Python-Skripten im Terminal, um Kompatibilität mit Python 3 sicherzustellen.
 - Keine unnötigen externen Dependencies (nur stdlib)
 
 {## Beispiel-Inputdatei (nur falls relevant)
