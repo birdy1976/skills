@@ -1,91 +1,64 @@
 ---
 name: python-cli-prompt-generator
-description: "From a short tool description (3-8 sentences), directly builds a finished, validated Python CLI tool: template-copy workflow, typed functions, tests (optional), Makefile, README."
+description: "Zero-Prose Automated TDD Python CLI Builder for local OSS models."
 ---
 
 # Skill: Python-CLI-Prompt-Generator
 
-## Purpose
-From a short tool description (3-8 sentences), this skill builds a finished, validated Python 3 CLI tool directly in the working directory. Based on the template below.
+## CRITICAL RULES FOR SMALL MODELS (NEVER VIOLATE)
+1. NO PROSE. Zero conversational filler. Respond ONLY in code blocks or the requested verification status lines.
+2. NO COMMENTS. Absolutely NO `# comments` and NO `"""docstrings"""` in ANY generated file. Code must be self-explanatory. Leaving a comment causes a linting/syntax failure.
+3. PREVENT BROKEN CODE: Never patch existing functions piecemeal. If a file fails validation, rewrite the entire file or the entire function from scratch to prevent indentation/control-flow errors.
+4. TEST HIERARCHY: If `make validate` fails, verify if the test mock matches the user's requirement. Do NOT alter the core CLI architecture to satisfy a broken test; fix the test or the parser first.
 
 ---
 
-# INSTRUCTION (verbatim from here)
+# INSTRUCTION
 
-## Coding Style
-- `from __future__ import annotations`
-- Type hints everywhere. IMPORTANT: NO docstrings/comments EVER in ANY of the files.
-- Generics as built-in types (`dict[str, str]`, `list[Question]`) — do NOT import `typing.Dict`/`typing.List`; `from __future__ import annotations` makes that unnecessary.
-- No single-letter variable names (`l`, `O`, `I`) — use descriptive names (`line`, `item`, `idx`). Else, there will be Ruff errors.
-- All imports in one block at the top. Else, there will be Ruff errors.
-- dataclasses with `default_factory`
-- `with` statements for file operations
-- PEP 8/257/484, 4-space indentation, no tabs
-- stdlib only, no external dependencies
-- Colors as module constants; only emit when `sys.stdout.isatty()` (disable color for pipes/files)
+## 1. Project Architecture & Setup
+Extract the tool name from the prompt and replace `{__TOOLNAME__}` globally. Generate these exact files in the working directory:
 
-## Validation
-1. Run `make validate` yourself (note: `ruff check --fix` and `ruff format` rewrite files — that's intended, recompile afterward).
-2. Report the result as compact status lines, no prose paragraphs. Example:
-   ```
-   py_compile: ok
-   ruff_check: ok
-   ruff_format: ok
-   mypy: ok
-   pytest: 5 passed
-   ```
-3. Keep the response short. Don't print finished files into the chat.
-
-## Test Setup
-- Use `sys.path.insert(0, str(PROJECT_ROOT))` with `PROJECT_ROOT = Path(__file__).resolve().parent`.
-- Mock file I/O with `monkeypatch.setattr('sys.stdin', io.StringIO(...))`; for `input()` use `monkeypatch.setattr('builtins.input', ...)`.
-- Capture output with `capsys`, and write at least one test per public API or error case.
-
-## Project Structure
 ```
 ./
 ├── {__TOOLNAME__}.py
 ├── test_{__TOOLNAME__}.py
+├── {__TOOLNAME__}.txt (Optional: only if the tool requires a sample input file)
 ├── Makefile
-├── README.md
-{additional files}
+└── README.md
 ```
 
-## Template
+### File Templates
 
-### {__TOOLNAME__}.py
-```
+#### {__TOOLNAME__}.py
+```python
 from __future__ import annotations
 
 import argparse
 import sys
 
-
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Short description.")
-    parser.add_argument("file", help="...")
+    parser = argparse.ArgumentParser(description="{__DESCRIPTION__}")
+
     args = parser.parse_args(argv)
 
     try:
-        print("TODO: logic here")
+        pass
     except (KeyboardInterrupt, EOFError):
         print()
         sys.exit(130)
 
-
 if __name__ == "__main__":
     main()
 ```
-Any loop containing `input()` belongs inside this `try/except` block from the start — don't wrap it around later.
+*Constraint*: Every loop containing `input()` or interactive I/O MUST execute inside the `try/except` block from the start.
 
-### test_{__TOOLNAME__}.py
-```
+#### test_{__TOOLNAME__}.py
+```python
 from __future__ import annotations
 
 import io
 import sys
 from pathlib import Path
-
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -93,54 +66,83 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 import {__TOOLNAME__}  # noqa: E402
 
-
-def test_placeholder() -> None:
-    assert True
+# Write tests using capsys and monkeypatch here. NO COMMENTS.
 ```
 
-### Makefile
-- Recipe lines MUST use TAB characters — the code block below uses literal tabs, keep them when copying.
-- If the tool does not accept an extra text file argument, remove the smoke test from the `validate` recipe.
-```
-.PHONY: help
-help: ## Show this help message
-	@echo "Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+#### Makefile
+*Constraint*: Lines inside recipes MUST start with a literal TAB character.
+```makefile
+.PHONY: help validate
+
+help:
+	@echo "Available commands: validate"
 
 .DEFAULT_GOAL := help
 
-.PHONY: validate
-validate: ## Validate codebase
+validate:
 	python3 -m py_compile *.py && python3 -m ruff check --fix *.py && python3 -m ruff format *.py && python3 -m mypy *.py && python3 -m pytest -q --tb=short && python3 {__TOOLNAME__}.py --help && (python3 {__TOOLNAME__}.py {__TOOLNAME__}.txt </dev/null || true)
 ```
 
-### README.md
+---
+
+## 2. Coding Rules
+- Imports: Single block at the top. No inline imports.
+- Variable Names: No single-letter names except inside list comprehensions. Use descriptive names like `line`, `item`, `idx`.
+- Typings: Use `list[Type]`, `dict[str, str]`. Do NOT import from the old `typing` module; use built-in generics.
+- Dependencies: Python Standard Library ONLY. No external third-party packages.
+- Terminal Colors: Only emit ANSI color constants if `sys.stdout.isatty()` is True (disable for pipes/files).
+
+---
+
+## 3. Strict Execution Workflow (Step-by-Step)
+
+You must act as an automated loop. Move to the next step immediately without asking for permission or writing conversational prose.
+
+### Step 1: Analyze & Create Test Data
+1. Extract the target tool name from the user prompt.
+2. If the tool operates on an input file format, create a minimal, valid sample file named `{__TOOLNAME__}.txt` with realistic test data.
+
+### Step 2: Generate Scaffold & Tests (test_{__TOOLNAME__}.py)
+Write the testing suite *before* finalizing the logic (TDD approach). Write at least 3 distinct tests:
+1. `test_parser`: Validates CLI arguments and flags.
+2. `test_happy_path`: Mocks standard inputs/files and validates successful core logic output via `capsys`.
+3. `test_error_handling`: Validates resilience against expected edge cases (e.g., empty files, malformed inputs).
+
+### Step 3: Run Validation Instantly
+Execute `make validate` inside the environment immediately. 
+Output the exact block format below. Do not explain the output.
+
 ```
-# {__TOOLNAME__}
-
-Short description.
-
-## Usage including --help
-
-```
-python3 {__TOOLNAME__}.py <arguments>
+py_compile: [status]
+ruff_check: [status]
+ruff_format: [status]
+mypy: [status]
+pytest: [status]
 ```
 
-## Development
+### Step 4: Implement Core Logic & Iterate
+If validation fails:
+1. Inspect the exact error output.
+2. If it's a linting/typing error, rewrite the failing structural block or file completely. Do NOT patch lines piecemeal. Do NOT add comments.
+3. Re-run `make validate` immediately.
+4. Loop dynamically until all validation steps report `ok` or `passed`.
 
-Development only: `make validate`.
-```
 
-## Procedure
-1. Extract: tool name, core purpose (1-2 sentences).
-2. Copy the template and replace the `__TOOLNAME__` token in every file with the tool name.
-3. Data models (`dataclasses`, `default_factory` instead of mutable defaults) ONLY if the tool carries state. Otherwise omit.
-4. Before writing anything: go through all type names and modules the code will need, once, completely (including helper functions), then write the file in one pass — do not add imports one at a time as errors surface.
-5. Define functions with typed signatures (incl. return type), including helper functions. Extract pure functions (no I/O) so they stay testable.
-6. CLI `main(argv: list[str] | None = None) -> None` with `argparse`: arguments, help text.
-7. Exception → message → `sys.exit(1)` table: list only exceptions the CLI actually raises (e.g. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` and `EOFError` (Ctrl-D at `input()`): blank line, `sys.exit(130)` — **build this in from the start** (see template), don't wrap it around an existing loop afterward.
-8. For file I/O: define the format exactly.
-9. Tests: write at least one meaningful test per public API or error case. A minimal set includes a parser test, an exception test, and a happy‑path test for core logic.
-10. Create a sample input file if the tool reads one.
-11. When structurally reshaping existing code (e.g. changing control flow, wrapping a block around existing logic): rewrite the affected file completely, don't patch it piecemeal — piecemeal patches to indentation/control flow are error-prone.
-12. Proceed to the validation and fix the issues.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
