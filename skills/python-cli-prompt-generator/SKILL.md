@@ -55,12 +55,21 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 ## Ausführungsregeln
 - Alle Dateien in einem Batch erstellen, wo möglich.
 - Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` ausführen. Fehler (auch Einrückung) sofort fixen.
-- `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` ausführen.
-- `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` ausführen.
+- `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` ausführen (Lint-Fehler beheben).
+- `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` ausführen (danach formatieren, da Fixes den Stil verändern können).
 - Alle Validierungsschritte (unten) selbst ausführen und Ergebnisse berichten. Nicht nachfragen.
 - Tools immer als `python3 -m <tool>` aufrufen (PATH-Probleme umgehen).
 - Fertige Dateien direkt speichern, nicht im Chat ausgeben. Antwort kurz halten.
 - Code, Kommentare, Docstrings knapp: nur was die Regeln unten fordern.
+- Validierungsergebnisse als kompakte Status-Zeilen berichten (Schritt: ok/fail), keine Fliesstext-Absätze. Beispiel:
+  ```
+  py_compile: ok
+  ruff_check: ok
+  ruff_format: ok
+  mypy: ok
+  pytest: {N} passed
+  help: ok
+  ```
 
 ## Aufgabe
 {1–2 Sätze: Zweck, Nutzer, Kernverhalten}
@@ -127,10 +136,10 @@ Deutsche `README.md` mit:
 Falls README existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
 
 ## Validierung (selbst ausführen, Ergebnis als Status-Zeilen berichten)
-1. `python3 -m py_compile {Hauptdatei}` → ohne Fehler
-2. `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` → ohne Fehler
-3. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → Formatierung fixen
-4. `python3 -m mypy --non-interactive {Hauptdatei}` → ohne Fehler
-5. `python3 -m pytest -q --tb=short` → zeigt `"{N} passed"`, keine Warnings
-6. `python3 {Hauptdatei} --help` → sinnvolle Usage-Meldung
+1. `python3 -m py_compile {Hauptdatei} test_{Hauptdatei}` → `py_compile: ok/fail`
+2. `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` → `ruff_check: ok/fail`
+3. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → `ruff_format: ok/fail`
+4. `python3 -m mypy {Hauptdatei}` → `mypy: ok/fail`
+5. `python3 -m pytest -q --tb=short` → `pytest: {N} passed` (keine Warnings)
+6. `python3 {Hauptdatei} --help` → `help: ok/fail`
 ```
