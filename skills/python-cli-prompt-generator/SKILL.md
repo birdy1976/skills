@@ -1,148 +1,278 @@
 ---
-name: python-cli-prompt-generator
-description: "Erzeugt PROMPT.md: einen agenten-optimierten Arbeitsauftrag aus einer kurzen Tool-Beschreibung."
+name: python-testing-patterns
+description: Implement comprehensive testing strategies with pytest, fixtures, mocking, and test-driven development. Use when writing Python tests, setting up test suites, or implementing testing best practices.
 ---
 
-# Skill: Python-CLI-Prompt-Generator
+# Python Testing Patterns
 
-## Zweck
-Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erzeugt dieser Skill einen vollständigen Arbeitsauftrag (`PROMPT.md`) für einen Coding-Agenten: Projektstruktur, Python-Regeln, Tests (optional), README, Validierungsschritte.
+Comprehensive guide to implementing robust testing strategies in Python using pytest, fixtures, mocking, parameterization, and test-driven development practices.
 
----
+## When to Use This Skill
 
-# ANWEISUNG AN DIE GENERIERENDE KI (ab hier verbatim)
+- Writing unit tests for Python code
+- Setting up test suites and test infrastructure
+- Implementing test-driven development (TDD)
+- Creating integration tests for APIs and services
+- Mocking external dependencies and services
+- Testing async code and concurrent operations
+- Setting up continuous testing in CI/CD
+- Implementing property-based testing
+- Testing database operations
+- Debugging failing tests
 
-## Rolle
-Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im Markdown-Format für einen Coding-Agenten.
+## Core Concepts
 
-## Ausgabe (CRITICAL)
-1. Speichere den Auftrag als `PROMPT.md` im Arbeitsverzeichnis.
-2. Bestätige nur mit einem Satz, dass die Datei erstellt ist. Kein Codeblock im Chat, keine Erklärung.
-3. Falls Caveman-Modus aktiv: nur Punkt 2 (Bestätigung) im Caveman-Stil. Der `PROMPT.md`-Inhalt selbst bleibt immer vollständig und präzise formuliert – es ist eine Spezifikation für einen anderen Agenten, keine Konversation.
+### 1. Test Types
 
-## Vorgehen
-1. Extrahiere: Hauptdatei-Name, Toolname, Kernzweck (1–2 Sätze).
-2. Definiere Datenmodelle (dataclasses): typisiert, `default_factory` statt mutable Defaults.
-3. Definiere ALLE Funktionen mit typisierter Signatur (inkl. Rückgabetyp) und Verhalten – auch Hilfsfunktionen. Jede später getestete Funktion muss hier stehen.
-4. Definiere CLI (`argparse`): Argumente, Hilfetext, Tabelle Exception → Meldung → Exit-Code.
-5. Bei Datei-I/O: Format exakt festlegen (mit Beispiel), ggf. Beispiel-Inputdatei verlangen.
-6. Entwirf Tests (eine Klasse pro Bereich). Bei Zustandslogik: exakte Inputs und erwartete Werte angeben.
-7. Zähle alle Tests zusammen zu N. N muss an beiden Stellen (Testsektion, Validierung) gleich sein.
-8. Fülle das Template unten aus. Nur `{...}` ersetzen, Struktur nicht ändern.
-9. Testumfang je nach Option:
-   - `pytest-none`: Testsektion und Pytest-Zeile in Validierung streichen. N = 0.
-   - `pytest-mini` (Standard): minimale, aussagekräftige Tests.
-   - `pytest-full`: umfassende Tests.
+- **Unit Tests**: Test individual functions/classes in isolation
+- **Integration Tests**: Test interaction between components
+- **Functional Tests**: Test complete features end-to-end
+- **Performance Tests**: Measure speed and resource usage
 
-## Vor Ausgabe prüfen
-- [ ] Testsumme pro Suite = N (an beiden Stellen gleich, oder N=0)
-- [ ] Jede in Tests verwendete Funktion oben spezifiziert
-- [ ] Alle Signaturen vollständig typisiert
-- [ ] Code-Fences alle geschlossen
-- [ ] Keine Rationale/Begründungs-Abschnitte
-- [ ] Format-/Sortier-/Rundungsregeln konkret, nicht "sinnvoll"
-- [ ] Validierung: Agent führt selbst aus und berichtet Ergebnis
-- [ ] Ausführungsregeln unverändert aus Template
-- [ ] Alle Tools als `python3 -m <tool>` (nie bare `pytest`/`ruff`/`mypy`)
-- [ ] Ausführungsregeln verlangen Status-Zeilen (ok/fail) statt Prosa für die Validierung
-- [ ] `PROMPT.md`-Inhalt bleibt bei aktivem Caveman-Modus vollständig ausformuliert (nur die Bestätigung darf komprimiert sein)
+### 2. Test Structure (AAA Pattern)
 
----
+- **Arrange**: Set up test data and preconditions
+- **Act**: Execute the code under test
+- **Assert**: Verify the results
 
-## TEMPLATE für PROMPT.md
+### 3. Test Coverage
 
-```markdown
-# {Toolname}: {Hauptdatei} mit Tests
+- Measure what code is exercised by tests
+- Identify untested code paths
+- Aim for meaningful coverage, not just high percentages
 
-## Ausführungsregeln
-- Vor erstem Schreibzugriff: Arbeitsverzeichnis bestätigen (`pwd`), erst danach Dateien anlegen.
-- Alle Dateien in einem Batch erstellen, wo möglich.
-- Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` ausführen. Fehler (auch Einrückung) sofort fixen.
-- `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` ausführen (Lint-Fehler beheben).
-- `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` ausführen (danach formatieren, da Fixes den Stil verändern können).
-- Alle Validierungsschritte (unten) selbst ausführen und Ergebnisse berichten. Nicht nachfragen.
-- Tools immer als `python3 -m <tool>` aufrufen (PATH-Probleme umgehen).
-- Fertige Dateien direkt speichern, nicht im Chat ausgeben. Antwort kurz halten.
-- Code, Kommentare, Docstrings knapp: nur was die Regeln unten fordern.
-- Validierungsergebnisse als kompakte Status-Zeilen berichten (Schritt: ok/fail), keine Fliesstext-Absätze. Beispiel:
-  ```
-  py_compile: ok
-  ruff_check: ok
-  ruff_format: ok
-  mypy: ok
-  pytest: {N} passed
-  help: ok
-  ```
+### 4. Test Isolation
 
-## Aufgabe
-{1–2 Sätze: Zweck, Nutzer, Kernverhalten}
+- Tests should be independent
+- No shared state between tests
+- Each test should clean up after itself
 
-## Projektstruktur
-```
-./
-├── README.md
-├── PROMPT.md
-├── {Hauptdatei}
-├── test_{Hauptdatei}
-{weitere Dateien}
+## Quick Start
+
+```python
+# test_example.py
+def add(a, b):
+    return a + b
+
+def test_add():
+    """Basic test example."""
+    result = add(2, 3)
+    assert result == 5
+
+def test_add_negative():
+    """Test with negative numbers."""
+    assert add(-1, 1) == 0
+
+# Run with: pytest test_example.py
 ```
 
-## {Hauptdatei} – Anforderungen
+## Detailed patterns and worked examples
 
-### 1. Datenmodelle (dataclasses)
-{Definitionen mit Type Hints, default_factory für mutable Defaults}
+Detailed pattern documentation lives in `references/details.md`. Read that file when the navigation tier above is insufficient.
 
-### 2–N. Funktionen
-{Jede Funktion: typisierte Signatur inkl. Rückgabetyp, Verhalten, Sonderfälle, Exceptions}
+## Testing Best Practices
 
-### N+1. CLI `main(argv: list[str] | None = None) -> None`
-- `argparse`: Argumente, Hilfetexte
-- Tabelle: Exception → Meldung → `sys.exit(1)`
+### Test Organization
 
-### N+2. Python-Regeln
-- `from __future__ import annotations`
-- Type Hints überall
-- Google-Docstrings: Args/Returns/Raises/Example
-- dataclasses mit `default_factory`
-- `with` für Dateioperationen
-- PEP 8/257/484, 4 Leerzeichen Einrückung, keine Tabs
-- `python3` zum Ausführen verwenden
-- Nur stdlib, keine externen Dependencies
-- Sauberer Abbruch mit `Ctrl+C` (KeyboardInterrupt abfangen, ohne Traceback beenden)
-
-{## Beispiel-Inputdatei (falls relevant)
-- Format-Spezifikation
-- Konkretes Beispiel}
-
-## test_{Hauptdatei} – Tests (pytest, genau {N} Tests)
-
-### Test{Bereich1} ({n1} Tests)
-1. `test_...` – {kurz; bei Zustandslogik: exakte Inputs/Erwartungswerte}
-...
-
-### Test{BereichK} ({nk} Tests)
-...
-
-### Test-Setup
-- `sys.path.insert(0, str(PROJECT_ROOT))`
-- `monkeypatch.setattr('sys.stdin', io.StringIO(...))` für I/O-Mock
-- `tmp_path`-Fixtures für Dateitests
-
-## README.md
-Deutsche `README.md` mit:
-- Name, kurze Beschreibung
-- Installation: keine (stdlib; pytest vorhanden)
-- Nutzung: `python3 {Hauptdatei} {Beispiel-Argumente}`
-- Test: `python3 -m pytest -q`
-- {ggf. Datenformat kurz erklären}
-
-Falls README existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
-
-## Validierung (selbst ausführen, Ergebnis als Status-Zeilen berichten)
-1. `python3 -m py_compile {Hauptdatei} test_{Hauptdatei}` → `py_compile: ok/fail`
-2. `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` → `ruff_check: ok/fail`
-3. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → `ruff_format: ok/fail`
-4. `python3 -m mypy {Hauptdatei}` → `mypy: ok/fail`
-5. `python3 -m pytest -q --tb=short` → `pytest: {N} passed` (keine Warnings)
-6. `python3 {Hauptdatei} --help` → `help: ok/fail`
+```python
+# tests/
+#   __init__.py
+#   conftest.py           # Shared fixtures
+#   test_unit/            # Unit tests
+#     test_models.py
+#     test_utils.py
+#   test_integration/     # Integration tests
+#     test_api.py
+#     test_database.py
+#   test_e2e/            # End-to-end tests
+#     test_workflows.py
 ```
+
+### Test Naming Convention
+
+A common pattern: `test_<unit>_<scenario>_<expected_outcome>`. Adapt to your team's preferences.
+
+```python
+# Pattern: test_<unit>_<scenario>_<expected>
+def test_create_user_with_valid_data_returns_user():
+    ...
+
+def test_create_user_with_duplicate_email_raises_conflict():
+    ...
+
+def test_get_user_with_unknown_id_returns_none():
+    ...
+
+# Good test names - clear and descriptive
+def test_user_creation_with_valid_data():
+    """Clear name describes what is being tested."""
+    pass
+
+def test_login_fails_with_invalid_password():
+    """Name describes expected behavior."""
+    pass
+
+def test_api_returns_404_for_missing_resource():
+    """Specific about inputs and expected outcomes."""
+    pass
+
+# Bad test names - avoid these
+def test_1():  # Not descriptive
+    pass
+
+def test_user():  # Too vague
+    pass
+
+def test_function():  # Doesn't explain what's tested
+    pass
+```
+
+### Testing Retry Behavior
+
+Verify that retry logic works correctly using mock side effects.
+
+```python
+from unittest.mock import Mock
+
+def test_retries_on_transient_error():
+    """Test that service retries on transient failures."""
+    client = Mock()
+    # Fail twice, then succeed
+    client.request.side_effect = [
+        ConnectionError("Failed"),
+        ConnectionError("Failed"),
+        {"status": "ok"},
+    ]
+
+    service = ServiceWithRetry(client, max_retries=3)
+    result = service.fetch()
+
+    assert result == {"status": "ok"}
+    assert client.request.call_count == 3
+
+def test_gives_up_after_max_retries():
+    """Test that service stops retrying after max attempts."""
+    client = Mock()
+    client.request.side_effect = ConnectionError("Failed")
+
+    service = ServiceWithRetry(client, max_retries=3)
+
+    with pytest.raises(ConnectionError):
+        service.fetch()
+
+    assert client.request.call_count == 3
+
+def test_does_not_retry_on_permanent_error():
+    """Test that permanent errors are not retried."""
+    client = Mock()
+    client.request.side_effect = ValueError("Invalid input")
+
+    service = ServiceWithRetry(client, max_retries=3)
+
+    with pytest.raises(ValueError):
+        service.fetch()
+
+    # Only called once - no retry for ValueError
+    assert client.request.call_count == 1
+```
+
+### Mocking Time with Freezegun
+
+Use freezegun to control time in tests for predictable time-dependent behavior.
+
+```python
+from freezegun import freeze_time
+from datetime import datetime, timedelta
+
+@freeze_time("2026-01-15 10:00:00")
+def test_token_expiry():
+    """Test token expires at correct time."""
+    token = create_token(expires_in_seconds=3600)
+    assert token.expires_at == datetime(2026, 1, 15, 11, 0, 0)
+
+@freeze_time("2026-01-15 10:00:00")
+def test_is_expired_returns_false_before_expiry():
+    """Test token is not expired when within validity period."""
+    token = create_token(expires_in_seconds=3600)
+    assert not token.is_expired()
+
+@freeze_time("2026-01-15 12:00:00")
+def test_is_expired_returns_true_after_expiry():
+    """Test token is expired after validity period."""
+    token = Token(expires_at=datetime(2026, 1, 15, 11, 30, 0))
+    assert token.is_expired()
+
+def test_with_time_travel():
+    """Test behavior across time using freeze_time context."""
+    with freeze_time("2026-01-01") as frozen_time:
+        item = create_item()
+        assert item.created_at == datetime(2026, 1, 1)
+
+        # Move forward in time
+        frozen_time.move_to("2026-01-15")
+        assert item.age_days == 14
+```
+
+### Test Markers
+
+```python
+# test_markers.py
+import pytest
+
+@pytest.mark.slow
+def test_slow_operation():
+    """Mark slow tests."""
+    import time
+    time.sleep(2)
+
+
+@pytest.mark.integration
+def test_database_integration():
+    """Mark integration tests."""
+    pass
+
+
+@pytest.mark.skip(reason="Feature not implemented yet")
+def test_future_feature():
+    """Skip tests temporarily."""
+    pass
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Unix only test")
+def test_unix_specific():
+    """Conditional skip."""
+    pass
+
+
+@pytest.mark.xfail(reason="Known bug #123")
+def test_known_bug():
+    """Mark expected failures."""
+    assert False
+
+
+# Run with:
+# pytest -m slow          # Run only slow tests
+# pytest -m "not slow"    # Skip slow tests
+# pytest -m integration   # Run integration tests
+```
+
+### Coverage Reporting
+
+```bash
+# Install coverage
+pip install pytest-cov
+
+# Run tests with coverage
+pytest --cov=myapp tests/
+
+# Generate HTML report
+pytest --cov=myapp --cov-report=html tests/
+
+# Fail if coverage below threshold
+pytest --cov=myapp --cov-fail-under=80 tests/
+
+# Show missing lines
+pytest --cov=myapp --cov-report=term-missing tests/
+```
+
+For advanced patterns (async testing, monkeypatching, property-based testing, database testing, CI/CD integration, and configuration), see [references/advanced-patterns.md](references/advanced-patterns.md)
