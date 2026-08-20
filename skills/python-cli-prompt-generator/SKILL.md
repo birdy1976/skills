@@ -13,37 +13,30 @@ Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erzeugt dieser Skill einen vol
 # ANWEISUNG AN DIE GENERIERENDE KI (ab hier verbatim)
 
 ## Rolle
-Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im Markdown-Format für einen Coding-Agenten.
+Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im Markdown-Format für einen Coding-Agenten und führst ihn anschliessend selbst aus – ohne Pause zwischen Erzeugen und Ausführen.
 
 ## Ausgabe (CRITICAL)
-1. Speichere den Auftrag als `PROMPT.md` im Arbeitsverzeichnis.
-2. Bestätige nur mit einem Satz, dass die Datei erstellt ist. Kein Codeblock im Chat, keine Erklärung.
+1. Speichere den Auftrag als `PROMPT.md` im Arbeitsverzeichnis. Kein Codeblock im Chat, keine Erklärung.
+2. Folge Instruktionen in @PROMPT.md. Kein Warten auf User-Input, keine Rückfrage.
 
 ## Vorgehen
 1. Extrahiere: Hauptdatei-Name, Toolname, Kernzweck (1–2 Sätze).
-2. Definiere Datenmodelle (dataclasses): typisiert, `default_factory` statt mutable Defaults.
-3. Definiere ALLE Funktionen mit typisierter Signatur (inkl. Rückgabetyp) und Verhalten – auch Hilfsfunktionen. Jede später getestete Funktion muss hier stehen.
-4. Definiere CLI (`argparse`): Argumente, Hilfetext, Tabelle Exception → Meldung → Exit-Code.
-5. Bei Datei-I/O: Format exakt festlegen (mit Beispiel), ggf. Beispiel-Inputdatei verlangen.
+2. Definiere Datenmodelle (`dataclasses`): typisiert, `default_factory` statt mutable Defaults.
+3. Definiere **ALLE** Funktionen mit typisierter Signatur (inkl. Rückgabetyp) und Verhalten – auch Hilfsfunktionen. Jede später getestete Funktion muss hier stehen.
+4. Definiere CLI (`argparse`): Argumente, Hilfetext, Tabelle Exception → Meldung → Exit-Code. **Hinweis:** Liste ausschliesslich Exceptions, die das CLI tatsächlich wirft (beispielsweise `FileNotFoundError`, `ValueError`).
+5. Bei Datei-I/O: Format exakt festlegen (mit Beispiel).
 6. Entwirf Tests (eine Klasse pro Bereich). Bei Zustandslogik: exakte Inputs und erwartete Werte angeben.
-7. Zähle alle Tests zusammen zu N. N muss an beiden Stellen (Testsektion, Validierung) gleich sein.
+7. Zähle alle Tests zusammen zu `N`.
 8. Fülle das Template unten aus. Nur `{...}` ersetzen, Struktur nicht ändern.
 9. Testumfang je nach Option:
-   - `pytest-none`: Testsektion und Pytest-Zeile in Validierung streichen. N = 0.
-   - `pytest-mini` (Standard): minimale, aussagekräftige Tests.
-   - `pytest-full`: umfassende Tests.
+   - `pytest-none` → Test-Sektion und Pytest-Zeile in Validierung streichen (N = 0).
+   - `pytest-mini` (Standard) → minimale, aussagekräftige Tests.
+   - `pytest-full` → umfassende Tests.
 
-## Vor Ausgabe prüfen
-- [ ] Testsumme pro Suite = N (an beiden Stellen gleich, oder N=0)
-- [ ] Jede in Tests verwendete Funktion oben spezifiziert
-- [ ] Alle Signaturen vollständig typisiert
-- [ ] Code-Fences alle geschlossen
-- [ ] Keine Rationale/Begründungs-Abschnitte
-- [ ] Format-/Sortier-/Rundungsregeln konkret, nicht "sinnvoll"
-- [ ] Validierung: Agent führt selbst aus und berichtet Ergebnis
-- [ ] Ausführungsregeln unverändert aus Template
-- [ ] Alle Tools als `python3 -m <tool>` (nie bare `pytest`/`ruff`/`mypy`)
-- [ ] Ausführungsregeln verlangen Status-Zeilen (ok/fail) statt Prosa für die Validierung
+## Vor Ausgabe prüfen (kurz)
+- [ ] Summe der Tests pro Suite == `N` (oder N=0 bei `pytest-none`)
+- [ ] Jede in Tests verwendete Funktion oben mit Signatur spezifiziert
+- [ ] Alle Code-Fences geschlossen
 
 ---
 
@@ -52,25 +45,13 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 ```markdown
 # {Toolname}: {Hauptdatei} mit Tests
 
-## Ausführungsregeln
-- Vor erstem Schreibzugriff: Arbeitsverzeichnis bestätigen (`pwd`), erst danach Dateien anlegen.
-- Alle Dateien in einem Batch erstellen, wo möglich.
-- Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` ausführen. Fehler (auch Einrückung) sofort fixen.
-- `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` ausführen (Lint-Fehler beheben).
-- `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` ausführen (danach formatieren, da Fixes den Stil verändern können).
-- Alle Validierungsschritte (unten) selbst ausführen und Ergebnisse berichten. Nicht nachfragen.
-- Tools immer als `python3 -m <tool>` aufrufen (PATH-Probleme umgehen).
-- Fertige Dateien direkt speichern, nicht im Chat ausgeben. Antwort kurz halten.
+## Build / Test Pipeline
+- Vor erstem Schreibzugriff: Arbeitsverzeichnis bestätigen (`pwd`).
+- Speichere alle Dateien sofort in einem Batch, nicht im Chat ausgeben.
+- Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` – Fehler (auch Einrückung) sofort fixen, bevor weitergemacht wird.
+- Führe danach `make validate` aus (Syntax, Lint, Format, Typen, Tests, Hilfe-Text).
+- Ergebnis von `make validate` als kompakte Status-Zeilen berichten (ok/fail pro Schritt), keine Fliesstext-Absätze.
 - Code, Kommentare, Docstrings knapp: nur was die Regeln unten fordern.
-- Validierungsergebnisse als kompakte Status-Zeilen berichten (Schritt: ok/fail), keine Fliesstext-Absätze. Beispiel:
-  ```
-  py_compile: ok
-  ruff_check: ok
-  ruff_format: ok
-  mypy: ok
-  pytest: {N} passed
-  help: ok
-  ```
 
 ## Aufgabe
 {1–2 Sätze: Zweck, Nutzer, Kernverhalten}
@@ -78,10 +59,11 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 ## Projektstruktur
 ```
 ./
-├── README.md
 ├── PROMPT.md
 ├── {Hauptdatei}
 ├── test_{Hauptdatei}
+├── Makefile
+├── README.md
 {weitere Dateien}
 ```
 
@@ -97,18 +79,17 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 - `argparse`: Argumente, Hilfetexte
 - Tabelle: Exception → Meldung → `sys.exit(1)`
 
-### N+2. Python-Regeln
+### N+2. Coding Style
 - `from __future__ import annotations`
 - Type Hints überall
 - Google-Docstrings: Args/Returns/Raises/Example
 - dataclasses mit `default_factory`
 - `with` für Dateioperationen
 - PEP 8/257/484, 4 Leerzeichen Einrückung, keine Tabs
-- `python3` zum Ausführen verwenden
 - Nur stdlib, keine externen Dependencies
 - Sauberer Abbruch mit `Ctrl+C` (KeyboardInterrupt abfangen, ohne Traceback beenden)
 
-{## Beispiel-Inputdatei (falls relevant)
+{## Beispiel-Inputdatei (falls das Tool eine Datei liest, erstelle ein Beispiel)
 - Format-Spezifikation
 - Konkretes Beispiel}
 
@@ -129,18 +110,34 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 ## README.md
 Deutsche `README.md` mit:
 - Name, kurze Beschreibung
-- Installation: keine (stdlib; pytest vorhanden)
 - Nutzung: `python3 {Hauptdatei} {Beispiel-Argumente}`
-- Test: `python3 -m pytest -q`
-- {ggf. Datenformat kurz erklären}
+- {Falls Beispiel-Inputdatei ein bestimmtes Format erwartet, hier beschreiben}
+- Nur für Entwicklung: `make validate` etc.
 
 Falls README existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
 
 ## Validierung (selbst ausführen, Ergebnis als Status-Zeilen berichten)
-1. `python3 -m py_compile {Hauptdatei} test_{Hauptdatei}` → `py_compile: ok/fail`
-2. `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` → `ruff_check: ok/fail`
-3. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → `ruff_format: ok/fail`
-4. `python3 -m mypy {Hauptdatei}` → `mypy: ok/fail`
-5. `python3 -m pytest -q --tb=short` → `pytest: {N} passed` (keine Warnings)
-6. `python3 {Hauptdatei} --help` → `help: ok/fail`
+
+`Makefile` mit folgender Regel:
+```
+.PHONY: validate
+validate:  ## Validate codebase
+	python3 -m py_compile *.py && \
+	python3 -m ruff check --fix *.py && \
+	python3 -m ruff format *.py && \
+	python3 -m mypy *.py && \
+	python3 -m pytest -q --tb=short && \
+	python3 $(Hauptdatei) --help
+```
+Falls Makefile existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
+
+Erwartetes Report-Format nach `make validate`:
+```
+py_compile: ok
+ruff_check: ok
+ruff_format: ok
+mypy: ok
+pytest: {N} passed
+help: ok
+```
 ```
