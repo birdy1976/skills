@@ -86,23 +86,23 @@ def test_placeholder() -> None:
     assert True
 ```
 
-### Makefile
+### Makefile (use tab indenting for recipe lines)
 ```
 .PHONY: help
-help:  ## Show this help message
-        @echo "Available commands:"
-        @grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+help: ## Show this help message
+    @echo "Available commands:"
+    @grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := help
 
 .PHONY: validate
-validate:  ## Validate codebase
-        python3 -m py_compile *.py && \
-        python3 -m ruff check --fix *.py && \
-        python3 -m ruff format *.py && \
-        python3 -m mypy *.py && \
-        python3 -m pytest -q --tb=short && \
-        python3 {__TOOLNAME__}.py --help
+validate: ## Validate codebase
+    python3 -m py_compile *.py && \
+    python3 -m ruff check --fix *.py && \
+    python3 -m ruff format *.py && \
+    python3 -m mypy *.py && \
+    python3 -m pytest -q --tb=short && \
+    python3 {__TOOLNAME__}.py --help
 ```
 
 ### README.md
@@ -126,8 +126,8 @@ Development only: `make validate`.
 - `from __future__ import annotations`
 - Type hints everywhere
 - Generics as built-in types (`dict[str, str]`, `list[Question]`) — do NOT import `typing.Dict`/`typing.List`; `from __future__ import annotations` makes that unnecessary.
-- No single-letter variable names (`l`, `O`, `I`) — use descriptive names (`line`, `item`, `idx`).
-- All imports in one block at the top, never inserted mid-file afterward.
+- No single-letter variable names (`l`, `O`, `I`) — use descriptive names (`line`, `item`, `idx`). Else, there will be Ruff errors.
+- All imports in one block at the top. Else, there will be Ruff errors.
 - Google-style docstrings: Args/Returns/Raises/Example
 - dataclasses with `default_factory`
 - `with` statements for file operations
