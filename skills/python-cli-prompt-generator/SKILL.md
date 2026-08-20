@@ -13,18 +13,18 @@ From a short tool description (3-8 sentences), this skill builds a finished, val
 # INSTRUCTION (verbatim from here)
 
 ## Procedure
-1. Confirm working directory (`pwd`) before the first write.
-2. Extract: tool name, core purpose (1-2 sentences).
-3. Copy the template and replace the `__TOOLNAME__` token in every file with the tool name.
-4. Data models (`dataclasses`, `default_factory` instead of mutable defaults) ONLY if the tool carries state. Otherwise omit.
-5. Before writing anything: go through all type names and modules the code will need, once, completely (including helper functions), then write the file in one pass — do not add imports one at a time as errors surface.
-6. Define functions with typed signatures (incl. return type), including helper functions. Extract pure functions (no I/O) so they stay testable.
-7. CLI `main(argv: list[str] | None = None) -> None` with `argparse`: arguments, help text.
-8. Exception → message → `sys.exit(1)` table: list only exceptions the CLI actually raises (e.g. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` and `EOFError` (Ctrl-D at `input()`): blank line, `sys.exit(130)` — **build this in from the start** (see template), don't wrap it around an existing loop afterward.
-9. For file I/O: define the format exactly.
-10. Tests: exactly as many as the tool actually needs. `pytest-mini` (default): minimal, meaningful tests. Rule of thumb: 1 test per parser/error case, 1 test per expected CLI exception, plus 1 happy-path test each for parser and core logic. Complex tools: more thorough. Trivial tool: `pytest-none` (skip the test file, shorten validation accordingly).
-11. Create a sample input file if the tool reads one.
-12. When structurally reshaping existing code (e.g. changing control flow, wrapping a block around existing logic): rewrite the affected file completely, don't patch it piecemeal — piecemeal patches to indentation/control flow are error-prone.
+1. Extract: tool name, core purpose (1-2 sentences).
+2. Copy the template and replace the `__TOOLNAME__` token in every file with the tool name.
+3. Data models (`dataclasses`, `default_factory` instead of mutable defaults) ONLY if the tool carries state. Otherwise omit.
+4. Before writing anything: go through all type names and modules the code will need, once, completely (including helper functions), then write the file in one pass — do not add imports one at a time as errors surface.
+5. Define functions with typed signatures (incl. return type), including helper functions. Extract pure functions (no I/O) so they stay testable.
+6. CLI `main(argv: list[str] | None = None) -> None` with `argparse`: arguments, help text.
+7. Exception → message → `sys.exit(1)` table: list only exceptions the CLI actually raises (e.g. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` and `EOFError` (Ctrl-D at `input()`): blank line, `sys.exit(130)` — **build this in from the start** (see template), don't wrap it around an existing loop afterward.
+8. For file I/O: define the format exactly.
+9. Tests: exactly as many as the tool actually needs. `pytest-mini` (default): minimal, meaningful tests. Rule of thumb: 1 test per parser/error case, 1 test per expected CLI exception, plus 1 happy-path test each for parser and core logic. Complex tools: more thorough. Trivial tool: `pytest-none` (skip the test file, shorten validation accordingly).
+10. Create a sample input file if the tool reads one.
+11. When structurally reshaping existing code (e.g. changing control flow, wrapping a block around existing logic): rewrite the affected file completely, don't patch it piecemeal — piecemeal patches to indentation/control flow are error-prone.
+12. Proceed to the validation and fix the issues.
 
 ## Project Structure
 ```
@@ -97,11 +97,11 @@ help: ## Show this help message
 
 .PHONY: validate
 validate: ## Validate codebase
-    python3 -m py_compile *.py && \
-    python3 -m ruff check --fix *.py && \
-    python3 -m ruff format *.py && \
-    python3 -m mypy *.py && \
-    python3 -m pytest -q --tb=short && \
+    python3 -m py_compile *.py &&
+    python3 -m ruff check --fix *.py &&
+    python3 -m ruff format *.py &&
+    python3 -m mypy *.py &&
+    python3 -m pytest -q --tb=short &&
     python3 {__TOOLNAME__}.py --help
 ```
 
