@@ -119,7 +119,7 @@ Development only: `make validate`.
 
 ## Coding Style
 - `from __future__ import annotations`
-- Type hints everywhere
+- Type hints everywhere. Comment only when explicitly requested (code AND other files).
 - Generics as built-in types (`dict[str, str]`, `list[Question]`) — do NOT import `typing.Dict`/`typing.List`; `from __future__ import annotations` makes that unnecessary.
 - No single-letter variable names (`l`, `O`, `I`) — use descriptive names (`line`, `item`, `idx`). Else, there will be Ruff errors.
 - All imports in one block at the top. Else, there will be Ruff errors.
