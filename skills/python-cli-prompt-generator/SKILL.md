@@ -16,8 +16,8 @@ Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erzeugt dieser Skill einen vol
 Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im Markdown-Format für einen Coding-Agenten und führst ihn anschliessend selbst aus – ohne Pause zwischen Erzeugen und Ausführen.
 
 ## Ausgabe (CRITICAL)
-1. Speichere den Auftrag als `PROMPT.md` im Arbeitsverzeichnis. Kein Codeblock im Chat, keine Erklärung.
-2. Folge Instruktionen in @PROMPT.md. Kein Warten auf User-Input, keine Rückfrage.
+1. Speichere den Auftrag als `PROMPT.md` im Arbeitsverzeichnis.
+2. Bestätige nur mit einem Satz, dass die Datei erstellt ist. Kein Codeblock im Chat, keine Erklärung.
 
 ## Vorgehen
 1. Extrahiere: Hauptdatei-Name, Toolname, Kernzweck (1–2 Sätze).
@@ -27,7 +27,7 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 5. Bei Datei-I/O: Format exakt festlegen (mit Beispiel).
 6. Entwirf Tests (eine Klasse pro Bereich). Bei Zustandslogik: exakte Inputs und erwartete Werte angeben.
 7. Zähle alle Tests zusammen zu `N`.
-8. Fülle das Template unten aus. Nur `{...}` ersetzen, Struktur nicht ändern.
+8. Wichtig: Fülle das Template unten aus. Nur `{...}` ersetzen, Struktur nicht ändern.
 9. Testumfang je nach Option:
    - `pytest-none` → Test-Sektion und Pytest-Zeile in Validierung streichen (N = 0).
    - `pytest-mini` (Standard) → minimale, aussagekräftige Tests.
@@ -46,12 +46,21 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 # {Toolname}: {Hauptdatei} mit Tests
 
 ## Build / Test Pipeline
-- Vor erstem Schreibzugriff: Arbeitsverzeichnis bestätigen (`pwd`).
-- Speichere alle Dateien sofort in einem Batch, nicht im Chat ausgeben.
-- Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` – Fehler (auch Einrückung) sofort fixen, bevor weitergemacht wird.
-- Führe danach `make validate` aus (Syntax, Lint, Format, Typen, Tests, Hilfe-Text).
-- Ergebnis von `make validate` als kompakte Status-Zeilen berichten (ok/fail pro Schritt), keine Fliesstext-Absätze.
+- Vor erstem Schreibzugriff: Arbeitsverzeichnis bestätigen (`pwd`), erst danach Dateien anlegen.
+- Alle Dateien in einem Batch erstellen, wo möglich.
+- Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` ausführen. Fehler (auch Einrückung) sofort fixen.
+- Validierung `make validate` selbst ausführen und Ergebnis als Status-Zeilen berichten. Nicht nachfragen.
+- Fertige Dateien direkt speichern, nicht im Chat ausgeben. Antwort kurz halten.
 - Code, Kommentare, Docstrings knapp: nur was die Regeln unten fordern.
+- Validierungsergebnisse als kompakte Status-Zeilen berichten (Schritt: ok/fail), keine Fliesstext-Absätze. Beispiel:
+  ```
+  py_compile: ok
+  ruff_check: ok
+  ruff_format: ok
+  mypy: ok
+  pytest: {N} passed
+  help: ok
+  ```
 
 ## Aufgabe
 {1–2 Sätze: Zweck, Nutzer, Kernverhalten}
@@ -107,18 +116,8 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 - `monkeypatch.setattr('sys.stdin', io.StringIO(...))` für I/O-Mock
 - `tmp_path`-Fixtures für Dateitests
 
-## README.md
-Deutsche `README.md` mit:
-- Name, kurze Beschreibung
-- Nutzung: `python3 {Hauptdatei} {Beispiel-Argumente}`
-- {Falls Beispiel-Inputdatei ein bestimmtes Format erwartet, hier beschreiben}
-- Nur für Entwicklung: `make validate` etc.
-
-Falls README existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
-
-## Validierung (selbst ausführen, Ergebnis als Status-Zeilen berichten)
-
-`Makefile` mit folgender Regel:
+## Makefile
+`Makefile` mit:
 ```
 .PHONY: validate
 validate:  ## Validate codebase
@@ -131,13 +130,12 @@ validate:  ## Validate codebase
 ```
 Falls Makefile existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
 
-Erwartetes Report-Format nach `make validate`:
-```
-py_compile: ok
-ruff_check: ok
-ruff_format: ok
-mypy: ok
-pytest: {N} passed
-help: ok
-```
+## README.md
+Deutsche `README.md` mit:
+- Name, kurze Beschreibung
+- Nutzung: `python3 {Hauptdatei} {Beispiel-Argumente}`
+- {Falls Beispiel-Inputdatei ein bestimmtes Format erwartet, hier beschreiben}
+- Nur für Entwicklung: `make validate` etc.
+
+Falls README existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
 ```
