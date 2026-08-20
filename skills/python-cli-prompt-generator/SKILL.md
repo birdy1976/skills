@@ -13,15 +13,18 @@ Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erstellt dieser Skill ein fert
 # ANWEISUNG (ab hier verbatim)
 
 ## Vorgehen
-1. Extrahiere: Toolname, Kernzweck (1–2 Sätze).
-2. Template übernehmen und Token `__TOOLNAME__` in allen Dateien durch den Toolnamen ersetzen.
-3. Datenmodelle (`dataclasses`, `default_factory` statt mutable Defaults) NUR wenn das Tool Zustand trägt. Sonst weglassen.
-4. Funktionen mit typisierter Signatur (inkl. Rückgabetyp) definieren, auch Hilfsfunktionen. Reine Funktionen (ohne I/O) auslagern, damit sie testbar sind.
-5. CLI `main(argv: list[str] | None = None) -> None` mit `argparse`: Argumente, Hilfetexte.
-6. Exception → Meldung → `sys.exit(1)`-Tabelle: ausschliesslich Exceptions, die das CLI tatsächlich wirft (z. B. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` und `EOFError` (Ctrl-D bei `input()`): Leerzeile, `sys.exit(130)`.
-7. Bei Datei-I/O: Format exakt festlegen.
-8. Tests: genau so viele, wie das Tool wirklich braucht. `pytest-mini` (Standard): minimale, aussagekräftige Tests. Faustregel: je 1 Test pro Parser-/Fehlerfall, je 1 Test pro erwarteter CLI-Exception, plus je 1 Happy-Path-Test für Parser und Kernlogik. Komplexe Tools: umfassender. Triviales Tool: `pytest-none` (Testdatei weglassen, Validierung entsprechend kürzen).
-9. Beispiel-Inputdatei anlegen, wenn das Tool eine Datei liest.
+1. Arbeitsverzeichnis bestätigen (`pwd`) vor erstem Schreibzugriff.
+2. Extrahiere: Toolname, Kernzweck (1–2 Sätze).
+3. Template übernehmen und Token `__TOOLNAME__` in allen Dateien durch den Toolnamen ersetzen.
+4. Datenmodelle (`dataclasses`, `default_factory` statt mutable Defaults) NUR wenn das Tool Zustand trägt. Sonst weglassen.
+5. Vor dem ersten Schreiben: alle im Code benötigten Typnamen und Module einmal komplett durchgehen (auch Hilfsfunktionen), dann Datei in einem Zug schreiben – nicht Importe einzeln nachschieben, wenn ein Fehler auftaucht.
+6. Funktionen mit typisierter Signatur (inkl. Rückgabetyp) definieren, auch Hilfsfunktionen. Reine Funktionen (ohne I/O) auslagern, damit sie testbar sind.
+7. CLI `main(argv: list[str] | None = None) -> None` mit `argparse`: Argumente, Hilfetexte.
+8. Exception → Meldung → `sys.exit(1)`-Tabelle: ausschliesslich Exceptions, die das CLI tatsächlich wirft (z. B. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` und `EOFError` (Ctrl-D bei `input()`): Leerzeile, `sys.exit(130)` – **von Anfang an einbauen** (siehe Template), nicht nachträglich um eine bestehende Schleife herumbauen.
+9. Bei Datei-I/O: Format exakt festlegen.
+10. Tests: genau so viele, wie das Tool wirklich braucht. `pytest-mini` (Standard): minimale, aussagekräftige Tests. Faustregel: je 1 Test pro Parser-/Fehlerfall, je 1 Test pro erwarteter CLI-Exception, plus je 1 Happy-Path-Test für Parser und Kernlogik. Komplexe Tools: umfassender. Triviales Tool: `pytest-none` (Testdatei weglassen, Validierung entsprechend kürzen).
+11. Beispiel-Inputdatei anlegen, wenn das Tool eine Datei liest.
+12. Bei struktureller Umgestaltung bestehenden Codes (z. B. Kontrollfluss ändern, Block um bestehende Logik legen): betroffene Datei komplett neu schreiben, nicht punktuell patchen – punktuelle Patches an Einrückung/Kontrollfluss sind fehleranfällig.
 
 ## Projektstruktur
 ```
@@ -53,7 +56,7 @@ def main(argv: list[str] | None = None) -> None:
 
     try:
         print("TODO: Logik hier")
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print()
         sys.exit(130)
 
@@ -61,6 +64,7 @@ def main(argv: list[str] | None = None) -> None:
 if __name__ == "__main__":
     main()
 ```
+Jede Schleife mit `input()` gehört von Anfang an in diesen `try/except`-Block – nicht nachträglich drumherum bauen.
 
 ### test_{__TOOLNAME__}.py
 ```
@@ -121,6 +125,9 @@ Nur für Entwicklung: `make validate`.
 ## Coding Style
 - `from __future__ import annotations`
 - Type Hints überall
+- Generics als eingebaute Typen (`dict[str, str]`, `list[Question]`) – NICHT `typing.Dict`/`typing.List` importieren, `from __future__ import annotations` macht das überflüssig.
+- Keine Einzelbuchstaben-Variablennamen (`l`, `O`, `I`) – sprechende Namen (`line`, `item`, `idx`).
+- Alle Imports in einem Block ganz oben, nie nachträglich mitten im Code einfügen.
 - Google-Docstrings: Args/Returns/Raises/Example
 - dataclasses mit `default_factory`
 - `with` für Dateioperationen
