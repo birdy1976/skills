@@ -8,12 +8,6 @@ description: "Erzeugt PROMPT.md: einen agenten-optimierten Arbeitsauftrag aus ei
 ## Zweck
 Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erzeugt dieser Skill einen vollständigen Arbeitsauftrag (`PROMPT.md`) für einen Coding-Agenten: Projektstruktur, Python-Regeln, Tests (optional), README, Validierungsschritte.
 
-## Aufruf
-- `/python-cli-prompt-generator` → minimale Tests (Standard)
-- `/python-cli-prompt-generator pytest-none` → keine Tests
-- `/python-cli-prompt-generator pytest-mini` → minimale Tests
-- `/python-cli-prompt-generator pytest-full` → umfassende Tests
-
 ---
 
 # ANWEISUNG AN DIE GENERIERENDE KI (ab hier verbatim)
@@ -49,6 +43,7 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 - [ ] Validierung: Agent führt selbst aus und berichtet Ergebnis
 - [ ] Ausführungsregeln unverändert aus Template
 - [ ] Alle Tools als `python3 -m <tool>` (nie bare `pytest`/`ruff`/`mypy`)
+- [ ] Ausführungsregeln verlangen Status-Zeilen (ok/fail) statt Prosa für die Validierung
 
 ---
 
@@ -60,8 +55,8 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 ## Ausführungsregeln
 - Alle Dateien in einem Batch erstellen, wo möglich.
 - Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` ausführen. Fehler (auch Einrückung) sofort fixen.
-- `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` ausführen (Formatierung).
-- `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` ausführen (Auto-Fix statt manueller Korrektur).
+- `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` ausführen.
+- `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` ausführen.
 - Alle Validierungsschritte (unten) selbst ausführen und Ergebnisse berichten. Nicht nachfragen.
 - Tools immer als `python3 -m <tool>` aufrufen (PATH-Probleme umgehen).
 - Fertige Dateien direkt speichern, nicht im Chat ausgeben. Antwort kurz halten.
@@ -101,6 +96,7 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 - PEP 8/257/484, 4 Leerzeichen Einrückung, keine Tabs
 - `python3` zum Ausführen verwenden
 - Nur stdlib, keine externen Dependencies
+- Sauberer Abbruch mit `Ctrl+C` (KeyboardInterrupt abfangen, ohne Traceback beenden)
 
 {## Beispiel-Inputdatei (falls relevant)
 - Format-Spezifikation
@@ -130,10 +126,10 @@ Deutsche `README.md` mit:
 
 Falls README existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
 
-## Validierung (selbst ausführen, Ergebnis berichten)
+## Validierung (selbst ausführen, Ergebnis als Status-Zeilen berichten)
 1. `python3 -m py_compile {Hauptdatei}` → ohne Fehler
-2. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → Formatierung fixen
-3. `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` → ohne Fehler
+2. `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` → ohne Fehler
+3. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → Formatierung fixen
 4. `python3 -m mypy --non-interactive {Hauptdatei}` → ohne Fehler
 5. `python3 -m pytest -q --tb=short` → zeigt `"{N} passed"`, keine Warnings
 6. `python3 {Hauptdatei} --help` → sinnvolle Usage-Meldung
