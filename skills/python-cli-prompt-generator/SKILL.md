@@ -21,9 +21,9 @@ Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erstellt dieser Skill ein fert
 3. Datenmodelle (`dataclasses`, `default_factory` statt mutable Defaults) NUR wenn das Tool Zustand trägt. Sonst weglassen.
 4. Funktionen mit typisierter Signatur (inkl. Rückgabetyp) definieren, auch Hilfsfunktionen. Reine Funktionen (ohne I/O) auslagern, damit sie testbar sind.
 5. CLI `main(argv: list[str] | None = None) -> None` mit `argparse`: Argumente, Hilfetexte.
-6. Exception → Meldung → `sys.exit(1)`-Tabelle: ausschliesslich Exceptions, die das CLI tatsächlich wirft (z. B. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt`: Leerzeile, `sys.exit(130)`.
+6. Exception → Meldung → `sys.exit(1)`-Tabelle: ausschliesslich Exceptions, die das CLI tatsächlich wirft (z. B. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` und `EOFError` (Ctrl-D bei `input()`): Leerzeile, `sys.exit(130)`.
 7. Bei Datei-I/O: Format exakt festlegen.
-8. Tests: genau so viele, wie das Tool wirklich braucht. `pytest-mini` (Standard): minimale, aussagekräftige Tests. Komplexe Tools: umfassender. Triviales Tool: `pytest-none` (Testdatei weglassen, Validierung entsprechend kürzen).
+8. Tests: genau so viele, wie das Tool wirklich braucht. `pytest-mini` (Standard): minimale, aussagekräftige Tests. Faustregel: je 1 Test pro Parser-/Fehlerfall, je 1 Test pro erwarteter CLI-Exception, plus je 1 Happy-Path-Test für Parser und Kernlogik. Komplexe Tools: umfassender. Triviales Tool: `pytest-none` (Testdatei weglassen, Validierung entsprechend kürzen).
 9. Beispiel-Inputdatei anlegen, wenn das Tool eine Datei liest.
 
 ## Coding Style
@@ -34,12 +34,12 @@ Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erstellt dieser Skill ein fert
 - `with` für Dateioperationen
 - PEP 8/257/484, 4 Leerzeichen Einrückung, keine Tabs
 - Nur stdlib, keine externen Dependencies
-- Farben als Modulkonstanten
+- Farben als Modulkonstanten; nur ausgeben, wenn `sys.stdout.isatty()` (Farbe abschalten bei Pipes/Dateien)
 
 ## Validierung
 1. Nach jeder Python-Datei sofort `python3 -m py_compile <datei>`. Fehler sofort fixen.
 2. Preflight: `python3 --version`, `python3 -m ruff --version`, `python3 -m mypy --version`, `python3 -m pytest --version`. Fehlende Module: die zugehörigen `validate`-Schritte überspringen und als `skipped` melden statt abbrechen.
-3. `make validate` selbst ausführen.
+3. `make validate` selbst ausführen (Hinweis: `ruff check --fix` und `ruff format` schreiben Dateien um — das ist gewollt, danach erneut kompilieren).
 4. Ergebnis als kompakte Status-Zeilen berichten, keine Fliesstext-Absätze. Beispiel:
    ```
    py_compile: ok
@@ -53,7 +53,7 @@ Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erstellt dieser Skill ein fert
 
 ## Test-Setup
 - `sys.path.insert(0, str(PROJECT_ROOT))` mit `PROJECT_ROOT = Path(__file__).resolve().parent`
-- `monkeypatch.setattr('sys.stdin', io.StringIO(...))` für I/O-Mock
+- `monkeypatch.setattr('sys.stdin', io.StringIO(...))` für Datei-/Stdin-Mock; bei `input()` stattdessen direkt `monkeypatch.setattr('builtins.input', ...)`
 - `capsys` für Output-Prüfung
 - `tmp_path`-Fixtures für Dateitests
 
