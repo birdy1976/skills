@@ -53,7 +53,7 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 7. Summiere die Testanzahlen aller Suiten zu einer Gesamtzahl N. Diese Zahl N muss exakt an zwei Stellen verwendet werden: in "Qualitätsanforderung" und in "Validierung am Ende" – beide müssen übereinstimmen.
 8. Fülle das Template unten 1:1 aus. Ersetze nur `{...}`-Platzhalter, ändere die Abschnittsstruktur sonst nicht.
 9. **Pytest-Generierung (basierend auf Aufruf-Option):**
-    *   Wenn `/python-cli-prompt-generator pytest-none` verwendet wird, **entferne** die gesamte Sektion `## test_{Hauptdatei} – Tests` und `## Validierung am Ende` (Punkt 2: `pytest -v`) aus dem generierten `PROMPT.md`. Setze N auf 0.
+    *   Wenn `/python-cli-prompt-generator pytest-none` verwendet wird, **entferne** die gesamte Sektion `## test_{Hauptdatei} – Tests` und `## Validierung am Ende` (Punkt 2: `python3 -m pytest -v`) aus dem generierten `PROMPT.md`. Setze N auf 0.
     *   Wenn `/python-cli-prompt-generator pytest-mini` (oder Standard ohne Option) verwendet wird, generiere die Sektion `## test_{Hauptdatei} – Tests` mit minimalen, aber aussagekräftigen Pytests.
     *   Wenn `/python-cli-prompt-generator pytest-full` verwendet wird, generiere die Sektion `## test_{Hauptdatei} – Tests` mit umfassenden Pytests (aktuelle Implementation).
 
@@ -66,6 +66,7 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 - [ ] Sortier-, Format- und Rundungsregeln sind konkret formuliert (z. B. "auf ganze Zahl gerundet", "aufsteigend nach Label"), nicht "sinnvoll"/"passend"?
 - [ ] "Validierung am Ende" ist als Liste von Schritten formuliert, die der AGENT selbst ausführt und deren Ergebnis er berichtet (nicht der Nutzer)?
 - [ ] "Ausführungsregeln"-Block ist unverändert aus dem Template übernommen?
+- [ ] Alle Tool-Aufrufe verwenden `python3 -m <tool>` (nicht bare `pytest`, `ruff`, `mypy`)?
 
 ---
 
@@ -76,9 +77,18 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 
 ## Ausführungsregeln (für effiziente Bearbeitung)
 - Erstelle alle Dateien in einem Batch bzw. parallel, wo möglich.
-- Führe alle Validierungsschritte am Ende SELBST aus (siehe "Validierung am Ende") und berichte mir die konkreten Ausgaben. Frag mich nicht, ob du sie ausführen sollst.
-- Triff bei kleineren Unklarheiten eine sinnvolle, zur Spezifikation passende Annahme und dokumentiere sie kurz – frage nur bei echten Widersprüchen nach.
-- Halte Code, Kommentare und Docstrings auf das in "Python-Expert-Regeln" geforderte Mass beschränkt – keine zusätzlichen Erklärtexte, Alternativimplementierungen oder Zusammenfassungen.
+- Führe nach dem Schreiben jeder Python-Datei sofort `python3 -m py_compile <datei>` aus.
+  Bei Syntaxfehlern (inkl. Einrückungsfehlern) sofort korrigieren, bevor du weitermachst.
+- Führe nach dem Schreiben aller Dateien `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` aus,
+  um Formatierungsprobleme automatisch zu beheben.
+- Führe alle weiteren Validierungsschritte am Ende SELBST aus (siehe "Validierung am Ende")
+  und berichte mir die konkreten Ausgaben. Frag mich nicht, ob du sie ausführen sollst.
+- Rufe alle Tools immer als `python3 -m <tool>` auf (also `python3 -m pytest`, `python3 -m ruff`,
+  `python3 -m mypy`) – nie als bare Command, da PATH-Probleme auftreten können.
+- Triff bei kleineren Unklarheiten eine sinnvolle, zur Spezifikation passende Annahme und
+  dokumentiere sie kurz – frage nur bei echten Widersprüchen nach.
+- Halte Code, Kommentare und Docstrings auf das in "Python-Expert-Regeln" geforderte Mass
+  beschränkt – keine zusätzlichen Erklärtexte, Alternativimplementierungen oder Zusammenfassungen.
 
 ## Aufgabe
 {1-2 Sätze: was das Tool tut, für wen, mit welchem Kernverhalten}
@@ -111,8 +121,8 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 - Google-Format Docstrings mit Args/Returns/Raises/Example
 - dataclasses mit `default_factory` statt mutable Defaults
 - `with` statements für Dateioperationen
-- PEP 8, PEP 257, PEP 484
-- Verwende `python3` zum Ausführen von Python-Skripten im Terminal, um Kompatibilität mit Python 3 sicherzustellen.
+- PEP 8, PEP 257, PEP 484 – Einrückung immer 4 Leerzeichen, nie Tabs
+- Verwende `python3` zum Ausführen von Python-Skripten im Terminal
 - Keine unnötigen externen Dependencies (nur stdlib)
 
 {## Beispiel-Inputdatei (nur falls relevant)
@@ -130,21 +140,24 @@ Du bist ein Prompt-Generator für einen Coding-Agenten (z. B. ein lokales LLM ü
 
 ### Test-Setup
 - `sys.path.insert(0, str(PROJECT_ROOT))`
-- `monkeypatch.setattr(\'sys.stdin\', io.StringIO(...))` für I/O-Mock
+- `monkeypatch.setattr('sys.stdin', io.StringIO(...))` für I/O-Mock
 - `tmp_path`-Fixtures für Dateitests
 
 ## README.md
 Erstelle eine deutsche `README.md` mit:
 - Projekt-Name und kurze Beschreibung
 - Installation: keine (nur Python-Standardbibliothek; pytest ist bereits vorhanden)
-- Nutzung: `python {Hauptdatei} {Beispiel-Argumente}`
-- Test: `pytest`
+- Nutzung: `python3 {Hauptdatei} {Beispiel-Argumente}`
+- Test: `python3 -m pytest -v`
 - {ggf. kurze Erklärung des verwendeten Datenformats}
 
 Falls bereits eine `README.md` existiert: nur fehlende Sektionen ergänzen, nicht neu schreiben.
 
 ## Validierung am Ende (von dir selbst auszuführen, Ergebnisse ausgeben)
 1. `python3 -m py_compile {Hauptdatei}` → muss ohne Fehler/Ausgabe durchlaufen
-2. `pytest -v` → muss `"{N} passed"` zeigen, keine Warnings
-3. `python {Hauptdatei} --help` → muss eine sinnvolle Usage-Meldung anzeigen
+2. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → Formatierung auto-korrigieren
+3. `python3 -m ruff check {Hauptdatei} test_{Hauptdatei}` → muss ohne Fehler durchlaufen
+4. `python3 -m mypy {Hauptdatei}` → muss ohne Fehler durchlaufen
+5. `python3 -m pytest -v` → muss `"{N} passed"` zeigen, keine Warnings
+6. `python3 {Hauptdatei} --help` → muss eine sinnvolle Usage-Meldung anzeigen
 ```
