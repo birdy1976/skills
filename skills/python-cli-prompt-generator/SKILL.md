@@ -156,7 +156,7 @@ Falls bereits eine `README.md` existiert: nur fehlende Sektionen ergänzen, nich
 ## Validierung am Ende (von dir selbst auszuführen, Ergebnisse ausgeben)
 1. `python3 -m py_compile {Hauptdatei}` → muss ohne Fehler/Ausgabe durchlaufen
 2. `python3 -m ruff format {Hauptdatei} test_{Hauptdatei}` → Formatierung auto-korrigieren
-3. `python3 -m ruff check {Hauptdatei} test_{Hauptdatei}` → muss ohne Fehler durchlaufen
+3. `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` → muss ohne Fehler durchlaufen
 4. `python3 -m mypy {Hauptdatei}` → muss ohne Fehler durchlaufen
 5. `python3 -m pytest -v` → muss `"{N} passed"` zeigen, keine Warnings
 6. `python3 {Hauptdatei} --help` → muss eine sinnvolle Usage-Meldung anzeigen
