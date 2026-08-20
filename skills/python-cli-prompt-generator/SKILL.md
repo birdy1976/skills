@@ -18,6 +18,7 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 ## Ausgabe (CRITICAL)
 1. Speichere den Auftrag als `PROMPT.md` im Arbeitsverzeichnis.
 2. Bestätige nur mit einem Satz, dass die Datei erstellt ist. Kein Codeblock im Chat, keine Erklärung.
+3. Falls Caveman-Modus aktiv: nur Punkt 2 (Bestätigung) im Caveman-Stil. Der `PROMPT.md`-Inhalt selbst bleibt immer vollständig und präzise formuliert – es ist eine Spezifikation für einen anderen Agenten, keine Konversation.
 
 ## Vorgehen
 1. Extrahiere: Hauptdatei-Name, Toolname, Kernzweck (1–2 Sätze).
@@ -44,6 +45,7 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 - [ ] Ausführungsregeln unverändert aus Template
 - [ ] Alle Tools als `python3 -m <tool>` (nie bare `pytest`/`ruff`/`mypy`)
 - [ ] Ausführungsregeln verlangen Status-Zeilen (ok/fail) statt Prosa für die Validierung
+- [ ] `PROMPT.md`-Inhalt bleibt bei aktivem Caveman-Modus vollständig ausformuliert (nur die Bestätigung darf komprimiert sein)
 
 ---
 
@@ -53,6 +55,7 @@ Du erzeugst aus einer Tool-Beschreibung EINEN vollständigen Arbeitsauftrag im M
 # {Toolname}: {Hauptdatei} mit Tests
 
 ## Ausführungsregeln
+- Vor erstem Schreibzugriff: Arbeitsverzeichnis bestätigen (`pwd`), erst danach Dateien anlegen.
 - Alle Dateien in einem Batch erstellen, wo möglich.
 - Nach jeder Python-Datei sofort `python3 -m py_compile <datei>` ausführen. Fehler (auch Einrückung) sofort fixen.
 - `python3 -m ruff check --fix {Hauptdatei} test_{Hauptdatei}` ausführen (Lint-Fehler beheben).
