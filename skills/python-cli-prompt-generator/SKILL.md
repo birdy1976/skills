@@ -5,11 +5,11 @@ description: "Zero-Prose Automated TDD Python CLI Builder for local OSS models."
 
 # Skill: Python-CLI-Prompt-Generator
 
-## CRITICAL RULES FOR SMALL MODELS (NEVER VIOLATE)
-1. NO PROSE. Zero conversational filler. Respond ONLY in code blocks or the requested verification status lines.
+## CRITICAL RULES FOR MODELS (NEVER VIOLATE)
+1. NO PROSE. Zero conversational filler. Respond ONLY in code blocks or the requested verification status lines. Don't print finished files into the chat: add them to the working directory.
 2. NO COMMENTS. Absolutely NO `# comments` and NO `"""docstrings"""` in ANY generated file. Code must be self-explanatory. Leaving a comment causes a linting/syntax failure.
 3. PREVENT BROKEN CODE: Never patch existing functions piecemeal. If a file fails validation, rewrite the entire file or the entire function from scratch to prevent indentation/control-flow errors.
-4. TEST HIERARCHY: If `make validate` fails, verify if the test mock matches the user's requirement. Do NOT alter the core CLI architecture to satisfy a broken test; fix the test or the parser first.
+4. TEST HIERARCHY: If `make validate` fails, verify whether the test mock matches the user's requirement. Do NOT alter the core CLI architecture to satisfy a broken test; fix the test or the parser first.
 
 ---
 
@@ -64,23 +64,40 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import {__TOOLNAME__}  # noqa: E402
-
-# Write tests using capsys and monkeypatch here. NO COMMENTS.
+import {__TOOLNAME__}
 ```
 
 #### Makefile
 *Constraint*: Lines inside recipes MUST start with a literal TAB character.
+*Optional smoke test*: Add `&& (python3 {__TOOLNAME__}.py {__TOOLNAME__}.txt </dev/null || true)` to the `validate` recipe, if there is a `{__TOOLNAME__}.txt`.
 ```makefile
-.PHONY: help validate
-
-help:
-	@echo "Available commands: validate"
+.PHONY: help
+help: ## Show this help message
+	@echo "Available commands:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := help
 
-validate:
-	python3 -m py_compile *.py && python3 -m ruff check --fix *.py && python3 -m ruff format *.py && python3 -m mypy *.py && python3 -m pytest -q --tb=short && python3 {__TOOLNAME__}.py --help && (python3 {__TOOLNAME__}.py {__TOOLNAME__}.txt </dev/null || true)
+.PHONY: validate
+validate: ## Validate codebase
+	python3 -m py_compile *.py && python3 -m ruff check --fix *.py && python3 -m ruff format *.py && python3 -m mypy *.py && python3 -m pytest -q --tb=short && python3 {__TOOLNAME__}.py --help
+```
+
+### README.md
+```markdown
+# {__TOOLNAME__}
+
+{__DESCRIPTION__}
+
+## Usage including --help
+
+```
+python3 {__TOOLNAME__}.py <arguments>
+```
+
+## Development
+
+Development only: `make validate`.
 ```
 
 ---
@@ -108,9 +125,10 @@ Write the testing suite *before* finalizing the logic (TDD approach). Write at l
 2. `test_happy_path`: Mocks standard inputs/files and validates successful core logic output via `capsys`.
 3. `test_error_handling`: Validates resilience against expected edge cases (e.g., empty files, malformed inputs).
 
-### Step 3: Run Validation Instantly
-Execute `make validate` inside the environment immediately. 
-Output the exact block format below. Do not explain the output.
+### Step 3: Implement Core Logic & Fix Issues
+1. Immediately run `make validate` and fix the issues.
+2. If there are linting/typing errors, rewrite the failing structural block or file completely. Do NOT patch lines piecemeal.
+3. Loop dynamically until all validation steps report `ok` or `passed` and output the exact block format below:
 
 ```
 py_compile: [status]
@@ -119,30 +137,3 @@ ruff_format: [status]
 mypy: [status]
 pytest: [status]
 ```
-
-### Step 4: Implement Core Logic & Iterate
-If validation fails:
-1. Inspect the exact error output.
-2. If it's a linting/typing error, rewrite the failing structural block or file completely. Do NOT patch lines piecemeal. Do NOT add comments.
-3. Re-run `make validate` immediately.
-4. Loop dynamically until all validation steps report `ok` or `passed`.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
