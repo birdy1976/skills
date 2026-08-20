@@ -119,11 +119,10 @@ Development only: `make validate`.
 
 ## Coding Style
 - `from __future__ import annotations`
-- Type hints everywhere. Comment only when explicitly requested (code AND other files).
+- Type hints everywhere. IMPORTANT: NO docstrings/comments EVER in ANY of the files.
 - Generics as built-in types (`dict[str, str]`, `list[Question]`) — do NOT import `typing.Dict`/`typing.List`; `from __future__ import annotations` makes that unnecessary.
 - No single-letter variable names (`l`, `O`, `I`) — use descriptive names (`line`, `item`, `idx`). Else, there will be Ruff errors.
 - All imports in one block at the top. Else, there will be Ruff errors.
-- Google-style docstrings: Args/Returns/Raises/Example
 - dataclasses with `default_factory`
 - `with` statements for file operations
 - PEP 8/257/484, 4-space indentation, no tabs
