@@ -1,46 +1,46 @@
 ---
 name: python-cli-prompt-generator
-description: "Erzeugt aus einer kurzen Tool-Beschreibung (3–8 Sätze) direkt ein fertiges, validiertes Python-CLI-Tool: Template-Kopierworkflow, typisierte Funktionen, Tests (optional), Makefile, README."
+description: "From a short tool description (3-8 sentences), directly builds a finished, validated Python CLI tool: template-copy workflow, typed functions, tests (optional), Makefile, README."
 ---
 
 # Skill: Python-CLI-Prompt-Generator
 
-## Zweck
-Aus einer kurzen Tool-Beschreibung (3–8 Sätze) erstellt dieser Skill ein fertiges, validiertes Python-3-CLI-Tool direkt im Arbeitsverzeichnis. Basis ist das Template.
+## Purpose
+From a short tool description (3-8 sentences), this skill builds a finished, validated Python 3 CLI tool directly in the working directory. Based on the template below.
 
 ---
 
-# ANWEISUNG (ab hier verbatim)
+# INSTRUCTION (verbatim from here)
 
-## Vorgehen
-1. Arbeitsverzeichnis bestätigen (`pwd`) vor erstem Schreibzugriff.
-2. Extrahiere: Toolname, Kernzweck (1–2 Sätze).
-3. Template übernehmen und Token `__TOOLNAME__` in allen Dateien durch den Toolnamen ersetzen.
-4. Datenmodelle (`dataclasses`, `default_factory` statt mutable Defaults) NUR wenn das Tool Zustand trägt. Sonst weglassen.
-5. Vor dem ersten Schreiben: alle im Code benötigten Typnamen und Module einmal komplett durchgehen (auch Hilfsfunktionen), dann Datei in einem Zug schreiben – nicht Importe einzeln nachschieben, wenn ein Fehler auftaucht.
-6. Funktionen mit typisierter Signatur (inkl. Rückgabetyp) definieren, auch Hilfsfunktionen. Reine Funktionen (ohne I/O) auslagern, damit sie testbar sind.
-7. CLI `main(argv: list[str] | None = None) -> None` mit `argparse`: Argumente, Hilfetexte.
-8. Exception → Meldung → `sys.exit(1)`-Tabelle: ausschliesslich Exceptions, die das CLI tatsächlich wirft (z. B. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` und `EOFError` (Ctrl-D bei `input()`): Leerzeile, `sys.exit(130)` – **von Anfang an einbauen** (siehe Template), nicht nachträglich um eine bestehende Schleife herumbauen.
-9. Bei Datei-I/O: Format exakt festlegen.
-10. Tests: genau so viele, wie das Tool wirklich braucht. `pytest-mini` (Standard): minimale, aussagekräftige Tests. Faustregel: je 1 Test pro Parser-/Fehlerfall, je 1 Test pro erwarteter CLI-Exception, plus je 1 Happy-Path-Test für Parser und Kernlogik. Komplexe Tools: umfassender. Triviales Tool: `pytest-none` (Testdatei weglassen, Validierung entsprechend kürzen).
-11. Beispiel-Inputdatei anlegen, wenn das Tool eine Datei liest.
-12. Bei struktureller Umgestaltung bestehenden Codes (z. B. Kontrollfluss ändern, Block um bestehende Logik legen): betroffene Datei komplett neu schreiben, nicht punktuell patchen – punktuelle Patches an Einrückung/Kontrollfluss sind fehleranfällig.
+## Procedure
+1. Confirm working directory (`pwd`) before the first write.
+2. Extract: tool name, core purpose (1-2 sentences).
+3. Copy the template and replace the `__TOOLNAME__` token in every file with the tool name.
+4. Data models (`dataclasses`, `default_factory` instead of mutable defaults) ONLY if the tool carries state. Otherwise omit.
+5. Before writing anything: go through all type names and modules the code will need, once, completely (including helper functions), then write the file in one pass — do not add imports one at a time as errors surface.
+6. Define functions with typed signatures (incl. return type), including helper functions. Extract pure functions (no I/O) so they stay testable.
+7. CLI `main(argv: list[str] | None = None) -> None` with `argparse`: arguments, help text.
+8. Exception → message → `sys.exit(1)` table: list only exceptions the CLI actually raises (e.g. `FileNotFoundError`, `ValueError`). `KeyboardInterrupt` and `EOFError` (Ctrl-D at `input()`): blank line, `sys.exit(130)` — **build this in from the start** (see template), don't wrap it around an existing loop afterward.
+9. For file I/O: define the format exactly.
+10. Tests: exactly as many as the tool actually needs. `pytest-mini` (default): minimal, meaningful tests. Rule of thumb: 1 test per parser/error case, 1 test per expected CLI exception, plus 1 happy-path test each for parser and core logic. Complex tools: more thorough. Trivial tool: `pytest-none` (skip the test file, shorten validation accordingly).
+11. Create a sample input file if the tool reads one.
+12. When structurally reshaping existing code (e.g. changing control flow, wrapping a block around existing logic): rewrite the affected file completely, don't patch it piecemeal — piecemeal patches to indentation/control flow are error-prone.
 
-## Projektstruktur
+## Project Structure
 ```
 ./
 ├── {__TOOLNAME__}.py
 ├── test_{__TOOLNAME__}.py
 ├── Makefile
 ├── README.md
-{weitere Dateien}
+{additional files}
 ```
 
 ## Template
 
 ### {__TOOLNAME__}.py
 ```
-"""Kurze Beschreibung des Tools."""
+"""Short description of the tool."""
 
 from __future__ import annotations
 
@@ -49,13 +49,13 @@ import sys
 
 
 def main(argv: list[str] | None = None) -> None:
-    """CLI-Einstiegspunkt."""
-    parser = argparse.ArgumentParser(description="Kurze Beschreibung.")
-    parser.add_argument("datei", help="...")
+    """CLI entry point."""
+    parser = argparse.ArgumentParser(description="Short description.")
+    parser.add_argument("file", help="...")
     args = parser.parse_args(argv)
 
     try:
-        print("TODO: Logik hier")
+        print("TODO: logic here")
     except (KeyboardInterrupt, EOFError):
         print()
         sys.exit(130)
@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> None:
 if __name__ == "__main__":
     main()
 ```
-Jede Schleife mit `input()` gehört von Anfang an in diesen `try/except`-Block – nicht nachträglich drumherum bauen.
+Any loop containing `input()` belongs inside this `try/except` block from the start — don't wrap it around later.
 
 ### test_{__TOOLNAME__}.py
 ```
@@ -109,37 +109,37 @@ validate:  ## Validate codebase
 ```
 # {__TOOLNAME__}
 
-Kurze Beschreibung.
+Short description.
 
-## Nutzung inklusive --help
+## Usage including --help
 
 ```
-python3 {__TOOLNAME__}.py <argumente>
+python3 {__TOOLNAME__}.py <arguments>
 ```
 
-## Entwicklung
+## Development
 
-Nur für Entwicklung: `make validate`.
+Development only: `make validate`.
 ```
 
 ## Coding Style
 - `from __future__ import annotations`
-- Type Hints überall
-- Generics als eingebaute Typen (`dict[str, str]`, `list[Question]`) – NICHT `typing.Dict`/`typing.List` importieren, `from __future__ import annotations` macht das überflüssig.
-- Keine Einzelbuchstaben-Variablennamen (`l`, `O`, `I`) – sprechende Namen (`line`, `item`, `idx`).
-- Alle Imports in einem Block ganz oben, nie nachträglich mitten im Code einfügen.
-- Google-Docstrings: Args/Returns/Raises/Example
-- dataclasses mit `default_factory`
-- `with` für Dateioperationen
-- PEP 8/257/484, 4 Leerzeichen Einrückung, keine Tabs
-- Nur stdlib, keine externen Dependencies
-- Farben als Modulkonstanten; nur ausgeben, wenn `sys.stdout.isatty()` (Farbe abschalten bei Pipes/Dateien)
+- Type hints everywhere
+- Generics as built-in types (`dict[str, str]`, `list[Question]`) — do NOT import `typing.Dict`/`typing.List`; `from __future__ import annotations` makes that unnecessary.
+- No single-letter variable names (`l`, `O`, `I`) — use descriptive names (`line`, `item`, `idx`).
+- All imports in one block at the top, never inserted mid-file afterward.
+- Google-style docstrings: Args/Returns/Raises/Example
+- dataclasses with `default_factory`
+- `with` statements for file operations
+- PEP 8/257/484, 4-space indentation, no tabs
+- stdlib only, no external dependencies
+- Colors as module constants; only emit when `sys.stdout.isatty()` (disable color for pipes/files)
 
-## Validierung
-1. Nach jeder Python-Datei sofort `python3 -m py_compile <datei>`. Fehler sofort fixen.
-2. Preflight: `python3 --version`, `python3 -m ruff --version`, `python3 -m mypy --version`, `python3 -m pytest --version`. Fehlende Module: die zugehörigen `validate`-Schritte überspringen und als `skipped` melden statt abbrechen.
-3. `make validate` selbst ausführen (Hinweis: `ruff check --fix` und `ruff format` schreiben Dateien um — das ist gewollt, danach erneut kompilieren).
-4. Ergebnis als kompakte Status-Zeilen berichten, keine Fliesstext-Absätze. Beispiel:
+## Validation
+1. Immediately after each Python file: `python3 -m py_compile <file>`. Fix errors right away.
+2. Preflight: `python3 --version`, `python3 -m ruff --version`, `python3 -m mypy --version`, `python3 -m pytest --version`. Missing modules: skip the corresponding `validate` steps and report them as `skipped` instead of aborting.
+3. Run `make validate` yourself (note: `ruff check --fix` and `ruff format` rewrite files — that's intended, recompile afterward).
+4. Report the result as compact status lines, no prose paragraphs. Example:
    ```
    py_compile: ok
    ruff_check: ok
@@ -148,10 +148,10 @@ Nur für Entwicklung: `make validate`.
    pytest: 5 passed
    help: ok
    ```
-5. Antwort kurz halten. Fertige Dateien nicht im Chat ausgeben.
+5. Keep the response short. Don't print finished files into the chat.
 
-## Test-Setup
-- `sys.path.insert(0, str(PROJECT_ROOT))` mit `PROJECT_ROOT = Path(__file__).resolve().parent`
-- `monkeypatch.setattr('sys.stdin', io.StringIO(...))` für Datei-/Stdin-Mock; bei `input()` stattdessen direkt `monkeypatch.setattr('builtins.input', ...)`
-- `capsys` für Output-Prüfung
-- `tmp_path`-Fixtures für Dateitests
+## Test Setup
+- `sys.path.insert(0, str(PROJECT_ROOT))` with `PROJECT_ROOT = Path(__file__).resolve().parent`
+- `monkeypatch.setattr('sys.stdin', io.StringIO(...))` for file/stdin mocking; for `input()` use `monkeypatch.setattr('builtins.input', ...)` directly instead
+- `capsys` for output assertions
+- `tmp_path` fixtures for file tests
