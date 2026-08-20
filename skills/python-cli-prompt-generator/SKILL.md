@@ -108,6 +108,7 @@ Development only: `make validate`.
 - Typings: Use `list[Type]`, `dict[str, str]`. Do NOT import from the old `typing` module; use built-in generics.
 - Dependencies: Python Standard Library ONLY. No external third-party packages.
 - Terminal Colors: Define colors as module constants. If `sys.stdout.isatty()` is False, dynamically re-assign all color constants to empty strings `""` at startup to keep print statements clean and branchless.
+- Interactive Safety: To prevent infinite loops in automated test environments, any interactive loop reading `input()` MUST break and exit with `sys.exit(1)` immediately if `input()` returns an empty string `""` multiple times consecutively or if end-of-file (EOF) conditions occur during non-interactive pipes.
 
 ---
 
@@ -122,7 +123,10 @@ You must act as an automated loop. Move to the next step immediately without ask
 ### Step 2: Generate Scaffold & Tests (test_{__TOOLNAME__}.py)
 Write the testing suite *before* finalizing the logic (TDD approach). Write at least 3 distinct tests:
 1. `test_parser`: Validates CLI arguments and flags.
-2. `test_happy_path`: Mocks standard inputs and validates successful core logic output via `capsys`. If the tool uses randomization (e.g., shuffling), patch the random library in the test (`monkeypatch.setattr(random, "shuffle", lambda x: None)`) to ensure predictable, testable behavior.
+2. `test_happy_path`: Mocks standard inputs and validates successful core logic output via `capsys`.
+   - RANDOM DEACTIVATION: You MUST patch the shuffle function directly: `monkeypatch.setattr(learn.random, "shuffle", lambda x: None)`.
+   - TEST DATA ALIGNMENT: Read the true `ANSWER:` tokens from the active tool's input asset file to construct the mock answers. Never guess or hardcode static sequences blindly.
+   - EOF PROTECTION: To prevent premature loop crashes (`SystemExit: 130`) during test execution, the `InputMock.__call__` method MUST raise a clean `SystemExit(0)` or return a specific terminal exit string instead of running dry or throwing unexpected exceptions when the answer array is exhausted.
 3. `test_error_handling`: Validates resilience against expected edge cases (e.g., empty files, malformed inputs).
 
 ### Step 3: Execute Validation Tool
